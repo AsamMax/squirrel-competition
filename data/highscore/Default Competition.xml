@@ -1,12 +1,57 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns2:leaderboard xmlns:ns2="leaderboard">
     <entry>
+        <date>2021-06-20</date>
+        <score>
+            <id>1</id>
+            <name>testbot24</name>
+            <points>14738</points>
+            <ranking>1</ranking>
+        </score>
+    </entry>
+    <entry>
         <date>2021-06-13</date>
         <score>
             <id>2</id>
             <name>pizzaBot</name>
             <points>6906</points>
-            <ranking>1</ranking>
+            <ranking>2</ranking>
+        </score>
+    </entry>
+    <entry>
+        <date>2021-06-20</date>
+        <score>
+            <id>2</id>
+            <name>moneyBot</name>
+            <points>6090</points>
+            <ranking>3</ranking>
+        </score>
+    </entry>
+    <entry>
+        <date>2021-06-20</date>
+        <score>
+            <id>1</id>
+            <name>testbot24</name>
+            <points>5884</points>
+            <ranking>4</ranking>
+        </score>
+    </entry>
+    <entry>
+        <date>2021-06-20</date>
+        <score>
+            <id>3</id>
+            <name>pizzaBot</name>
+            <points>4910</points>
+            <ranking>5</ranking>
+        </score>
+    </entry>
+    <entry>
+        <date>2021-06-20</date>
+        <score>
+            <id>2</id>
+            <name>pizzaBot</name>
+            <points>4101</points>
+            <ranking>6</ranking>
         </score>
     </entry>
     <entry>
@@ -15,16 +60,34 @@
             <id>1</id>
             <name>moneyBot</name>
             <points>3929</points>
-            <ranking>2</ranking>
+            <ranking>7</ranking>
         </score>
     </entry>
     <entry>
-        <date>2021-06-13</date>
+        <date>2021-06-20</date>
+        <score>
+            <id>1</id>
+            <name>moneyBot</name>
+            <points>2887</points>
+            <ranking>8</ranking>
+        </score>
+    </entry>
+    <entry>
+        <date>2021-06-20</date>
+        <score>
+            <id>3</id>
+            <name>pizzaBot</name>
+            <points>1574</points>
+            <ranking>9</ranking>
+        </score>
+    </entry>
+    <entry>
+        <date>2021-06-20</date>
         <score>
             <id>0</id>
             <name>examplebot24</name>
-            <points>0</points>
-            <ranking>3</ranking>
+            <points>433</points>
+            <ranking>10</ranking>
         </score>
     </entry>
     <maxEntries>10</maxEntries>
