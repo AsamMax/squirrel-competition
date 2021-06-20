@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:videoSettings xmlns:ns2="video_settings">
+    <fullScreen>true</fullScreen>
+    <height>600</height>
+    <width>800</width>
+</ns2:videoSettings>

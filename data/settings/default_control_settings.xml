@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:controlSettings xmlns:ns2="control_settings">
+    <fullScreen>F12</fullScreen>
+    <gameMenu>ESCAPE</gameMenu>
+</ns2:controlSettings>

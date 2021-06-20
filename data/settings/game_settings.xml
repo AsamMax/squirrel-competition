@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:gameSettings xmlns:ns2="game_settings">
+  <turnsPerGame>1000</turnsPerGame>
+  <gamesPerCompetition>3</gamesPerCompetition>  
+  <turnsPerSecond>10</turnsPerSecond>
+</ns2:gameSettings>

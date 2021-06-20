@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="FatSquirrel">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/FatSquirrel.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
