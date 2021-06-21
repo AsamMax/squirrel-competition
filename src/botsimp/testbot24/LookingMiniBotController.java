@@ -231,7 +231,7 @@ public class LookingMiniBotController implements BotController {
                     EntityType entity = context.getEntityAt(loc);
                     double distance = loc.minus(me).length();
                     if (distance < (double) r) {
-                        double impactArea = (double) (r * r) * 3.141592653589793D;
+                        double impactArea = (double) (r * r) * Math.PI;
                         int energyLoss = (int) (-200.0D * ((double) energy / impactArea) * (1.0D - distance / (double) r));
                         int entityEnergy;
                         switch (entity) {

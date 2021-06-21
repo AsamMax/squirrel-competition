@@ -75,18 +75,18 @@
     <entry>
         <date>2021-06-20</date>
         <score>
-            <id>3</id>
+            <id>2</id>
             <name>pizzaBot</name>
-            <points>1574</points>
+            <points>2489</points>
             <ranking>9</ranking>
         </score>
     </entry>
     <entry>
         <date>2021-06-20</date>
         <score>
-            <id>0</id>
-            <name>examplebot24</name>
-            <points>433</points>
+            <id>1</id>
+            <name>moneyBot</name>
+            <points>1825</points>
             <ranking>10</ranking>
         </score>
     </entry>

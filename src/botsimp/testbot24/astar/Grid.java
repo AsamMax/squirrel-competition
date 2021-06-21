@@ -1,5 +1,7 @@
 package botsimp.testbot24.astar;
 
+import de.hsa.games.fatsquirrel.utilities.XY;
+
 import java.util.ArrayList;
 
 public class Grid {
@@ -67,5 +69,8 @@ public class Grid {
 
     public Node getNodeAt(int x, int y){
         return grid[x][y];
+    }
+    public Node getNodeAt(XY xy){
+        return getNodeAt(xy.x, xy.y);
     }
 }
