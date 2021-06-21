@@ -6,6 +6,11 @@ import java.util.HashMap;
 
 public class Util24 {
 
+    public static boolean isBetween(XY loc, XY ul, XY lr) {
+        return loc.x >= ul.x && loc.x <= lr.x &&
+                loc.y >= ul.y && loc.y <= lr.y;
+    }
+
     public static int directSteps(XY loc1, XY loc2) {
         XY vector = loc2.minus(loc1);
         int deltaX = Math.abs(vector.x);
@@ -20,13 +25,14 @@ public class Util24 {
 
         if (x1 != lowestRightest.x || y1 != lowestRightest.y) {
             lowestRightest = new XY(x1, y1);
-            System.out.println("New estimated middle: " + lowestRightest);
+            System.out.println("New estimated border: " + lowestRightest);
         }
         return lowestRightest;
     }
 
     public static class DefaultDict<K, V> extends HashMap<K, V> {
         Class<V> klass;
+
         @SuppressWarnings("unchecked")
         public DefaultDict(Class<?> klass) {
             this.klass = (Class<V>) klass;

@@ -16,24 +16,29 @@ import java.util.Comparator;
 import java.util.List;
 
 import static botsimp.testbot24.Util24.directSteps;
+import static botsimp.testbot24.Util24.isBetween;
 
 public class LookingMasterBotController implements BotController {
-//    private boolean previouslyShotAtMaster = false; // vllt erst dann wieder auf true wenn kein master in einem bestimmten bereich ist
+    //    private boolean previouslyShotAtMaster = false; // vllt erst dann wieder auf true wenn kein master in einem bestimmten bereich ist
 
     private final DefaultDict<EntityType, List<XY>> allUnits = new DefaultDict<>(ArrayList.class);
     private XY assumedSize = new XY(0, 0);
     private XY me = null;
     private ControllerContext context;
+    private XY ul = null;
+    private XY lr = null;
 
     private Grid g = null;
     private Node start = null;
     private Pathfinding p = null;
+    public static final boolean CAN_ESCAPE = false;
+    private XY currentTarget;
+
 
     @Override
     public void nextStep(ControllerContext contexts) {
         try {
             this.context = contexts;
-            me = context.locate();
 //            long startTime = System.currentTimeMillis();
 
             g = null;
@@ -43,14 +48,15 @@ public class LookingMasterBotController implements BotController {
             analizeSurroundings();
 
 
-            if (nearestEnemyMini().distanceFrom(me) < 5) {
+            XY near = nearestEnemyMini();
+            if (near != null && near.distanceFrom(me) < 5) {
                 if (spawnMini()) {
                     // System.out.println("Time past with spawn: " + (System.currentTimeMillis() - startTime));
                     return;
                 }
             }
-            XY near = nearest(EntityType.MASTER_SQUIRREL);
-            if ( near != null && near.distanceFrom(me) < 4) {
+            near = nearest(EntityType.MASTER_SQUIRREL);
+            if (CAN_ESCAPE && near != null && near.distanceFrom(me) < 4) {
                 boolean escaped = tryEscape();
 
                 if (escaped) {
@@ -66,12 +72,7 @@ public class LookingMasterBotController implements BotController {
             }
 
 
-            XY bestMove = bestMove();
-            if (bestMove == null) { //maybe spawn mini
-                bestMove = me.plus(moveSave());
-            }
-
-            context.move(bestMove.minus(me));
+            context.move(bestMove().minus(me));
 
 
 //            System.out.println("Time past: " + (System.currentTimeMillis() - startTime));
@@ -81,75 +82,63 @@ public class LookingMasterBotController implements BotController {
     }
 
     private XY bestMove() {
-        XY ul = context.getViewUpperLeft();
         int minMoves = Integer.MAX_VALUE;
-        XY target = null;
+        currentTarget = null;
 
         for (XY plant : allUnits.get(EntityType.GOOD_PLANT)) {
-            int direct = directSteps(me, plant);
-            if (direct >= minMoves) {
-                break; // The Lists are ordered by steps
+            int length =  findPath(minMoves, plant);
+            if (length >= 0){ // negative int for errors or usless checks
+                minMoves = length;
+            }else {
+                break;
             }
-            XY nextStep = getDirectPath(plant);
-            if (nextStep != null) {
-                target = nextStep;
-                minMoves = direct;
+        }
 
-                System.out.println("plant straight line");
+        for (XY beast : allUnits.get(EntityType.GOOD_BEAST)) {
+            int length =  findPath(minMoves, beast);
+            if (length >= 0){ // negative int for errors or usless checks
+                minMoves = length;
+            }else {
                 break;
             }
 
-            ensureGrid();
-            Node targetNode = g.getNodeAt(plant.minus(ul));
-            ArrayList<Node> path = p.findPath(start, targetNode);
+        }
+        if (currentTarget == null) {
+            currentTarget = me.plus(moveSave());
+        }
+        return currentTarget;
+    }
 
-            if (path.size() < 2) {
-                continue; // No Path found
-            }
+    private int findPath(int minMoves, XY plant) {
+        int direct = directSteps(me, plant);
+        // The Lists are ordered by steps
+        if (direct >= minMoves) {
+            return -1;
+        }
+        XY nextStep = getDirectPath(plant);
+        if (nextStep != null) {
+            currentTarget = nextStep;
+            minMoves = direct;
 
+            System.out.println("plant straight line");
+            return minMoves;
+        }
+
+        ensureGrid();
+        Node targetNode = g.getNodeAt(plant.minus(ul));
+        ArrayList<Node> path = p.findPath(start, targetNode);
+
+        if (path.size() >= 2) {
             Node next = path.get(1);
             if (targetNode.getMoveCount() < minMoves) {
-                target = new XY(next.gridX - start.gridX, next.gridY - start.gridY).plus(me);
+                currentTarget = new XY(next.gridX - start.gridX, next.gridY - start.gridY).plus(me);
                 minMoves = targetNode.getMoveCount();
                 System.out.println("plant astar");
                 System.out.println(path);
             }
         }
-
-        for (XY beast : allUnits.get(EntityType.GOOD_BEAST)) {
-            int direct = directSteps(me, beast);
-            if (direct >= minMoves) {
-                break; // The Lists are ordered by steps
-            }
-            XY nextStep = getDirectPath(beast);
-            if (nextStep != null) {
-                target = nextStep;
-                minMoves = direct;
-                System.out.println("beast straight line");
-                break;
-            }
-
-            ensureGrid();
-            Node targetNode = g.getNodeAt(beast.minus(ul));
-            ArrayList<Node> path = p.findPath(start, targetNode);
-
-            if (path.size() < 2) {
-                continue; // No Path found
-            }
-
-            Node next = path.get(1);
-            if (targetNode.getMoveCount() < minMoves) {
-                target = new XY(next.gridX - start.gridX, next.gridY - start.gridY).plus(me);
-                minMoves = targetNode.getMoveCount();
-                System.out.println("beast astar");
-                System.out.println(path);
-            }
-
-        }
-        if (target == null) {
-            System.out.println("None");
-        }
-        return target;
+        // No Path found
+        return minMoves;
     }
 
     private XY getDirectPath(XY targetLocation) {
@@ -235,7 +224,7 @@ public class LookingMasterBotController implements BotController {
             }
         }
         // Always far enough away. Avoids Null-Errors
-        return new XY(-10000, -10000);
+        return null;
     }
 
     private XY nearest(EntityType entityType) {
@@ -248,9 +237,7 @@ public class LookingMasterBotController implements BotController {
     }
 
     private int[][] generateBoard() {
-        XY ul = context.getViewUpperLeft();
-        XY lr = context.getViewLowerRight();
-        int[][] board = new int[lr.x - ul.x + 1][lr.y - ul.y + 1];
+        int[][] board = new int[lr.x - ul.x + 2][lr.y - ul.y + 2];
         for (XY loc : allUnits.get(EntityType.BAD_PLANT)) {
             loc = loc.minus(ul);
             board[loc.x][loc.y] = 100;
@@ -288,52 +275,38 @@ public class LookingMasterBotController implements BotController {
     }
 
     private void analizeSurroundings() {
+
+        me = context.locate();
+        ul = context.getViewUpperLeft();
+        lr = context.getViewLowerRight();
+
         allUnits.clear();
-
-        XY ul = context.getViewUpperLeft();
-        XY lr = context.getViewLowerRight();
-
         assumedSize = Util24.checkLowestRightest(assumedSize, lr);
 
-        int steps = (lr.x + 1 - ul.x);
-        // TODO: Falls Performance besser werden muss: "x >> 1" entspricht "x / 2"
-        int mid = (ul.x + lr.x) / 2;
+        int maxDistance = (lr.x - ul.x) / 2;
 
-        for (int i = 0; i < steps; i++) {
-
-            // Go from the Center out
-            int x;
-            if (i % 2 == 0) {
-                x = mid + i / 2;
-            } else {
-                x = mid + -(i / 2 + 1);
+        for (int r = 1; r <= maxDistance; r++) {
+            for (int x = me.x - r; x <= me.x + r; x++) {
+                detect(x, me.y + r);
+                detect(x, me.y - r);
             }
-
-            if (x < ul.x || x >= lr.x) {
-                continue; // Skip if out of bounds
-            }
-
-            for (int j = 0; j < steps; j++) {
-                // Go from the Center out
-                int y;
-                if (j % 2 == 0) {
-                    y = mid + j / 2;
-                } else {
-                    y = mid + -(j / 2 + 1);
-                }
-                if (y < ul.y || y >= lr.y) {
-                    continue;  // Skip if out of bounds
-                }
-
-                XY loc = new XY(x, y);
-                EntityType type = context.getEntityAt(loc);
-                if (loc.equals(me) || type == EntityType.NONE) {
-                    continue;
-                }
-
-                allUnits.get(type).add(loc);
+            for (int y = me.y - r + 1; y < me.y + r; y++) {
+                detect(me.x + r, y);
+                detect(me.x - r, y);
             }
         }
+    }
+
+    private void detect(int x, int y) {
+        XY loc = new XY(x, y);
+        if (!isBetween(loc, ul, lr)) {
+            return;
+        }
+        EntityType type = context.getEntityAt(loc);
+        if (loc.equals(me) || type == EntityType.NONE) {
+            return;
+        }
+        allUnits.get(type).add(loc);
     }
 
     private XY moveSave() {
@@ -398,7 +371,7 @@ public class LookingMasterBotController implements BotController {
     private XY closestEnemyDir() {
         XY closestLoc = closestEnemy();
 
-        if (closestLoc.distanceFrom(me) < 20) {
+        if (closestLoc != null) {
             return closestLoc.minus(me).toDirection();
         } else {
             return XY.randomDirection();
@@ -450,14 +423,11 @@ public class LookingMasterBotController implements BotController {
     private boolean tryEscape() {
         ensureGrid();
         ArrayList<Node> path;
-        XY ul = context.getViewUpperLeft();
 
         Node target;
         try {
-            int lrx = (int) (assumedSize.x / 2f);
-            int lry = (int) (assumedSize.y / 2f);
-
-            target = g.getNodeAt(lrx - ul.x, lry - ul.y);
+            XY center = getCenter();
+            target = g.getNodeAt(center.x - ul.x, center.y - ul.y);
 
             // XY dir = allUnits.get(EntityType.MASTER_SQUIRREL).stream().reduce(XY.ZERO_ZERO, XY::plus).minus(me).toDirection().times(-1);
             // target = g.getNodeAt(me.x - ul.x + dir.x, me.y - ul.y + dir.y);
@@ -474,6 +444,10 @@ public class LookingMasterBotController implements BotController {
         context.move(new XY(path.get(1).gridX - start.gridX, path.get(1).gridY - start.gridY));
         System.out.println("Try escape");
         return true;
+    }
+
+    private XY getCenter() {
+        return new XY((int) (assumedSize.x / 2f), (int) (assumedSize.y / 2f));
     }
 
 //    private int realDistanceTo(XY start, XY t){
