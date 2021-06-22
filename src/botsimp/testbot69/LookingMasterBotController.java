@@ -33,7 +33,6 @@ public class LookingMasterBotController implements BotController {
             int newY = (int) (lr.y / 2f);
             if (newX + newY > estimatedMiddle.x + estimatedMiddle.y) {
                 estimatedMiddle = new XY(newX, newY);
-                System.out.println("New estimated middle: " + estimatedMiddle);
             }
 
             int[][] board = new int[lr.x - ul.x + 1][lr.y - ul.y + 1];
@@ -76,7 +75,6 @@ public class LookingMasterBotController implements BotController {
                         case MASTER_SQUIRREL:
                             double dist = Math.abs(loc.distanceFrom(me));
                             if (dist < 4) {
-                                System.out.println(Math.abs(loc.distanceFrom(me)));
                                 masterInRange = true;
                                 enemyMasters.add(loc);
                             }
@@ -232,7 +230,6 @@ public class LookingMasterBotController implements BotController {
         ArrayList<Node> path;
         XY dir = enemyMasterPos.stream().reduce(XY.ZERO_ZERO, XY::plus).minus(me).toDirection().times(-1);
         if (dir.equals(XY.ZERO_ZERO)) {
-            System.out.println("Cant escape1");
             return false;
         }
         do {
@@ -240,7 +237,6 @@ public class LookingMasterBotController implements BotController {
             try {
                 target = g.getNodeAt(me.x - ul.x + dir.x, me.y - ul.y + dir.y);
             } catch (IndexOutOfBoundsException e) {
-                System.out.println("Cant escape2");
                 return false;
             }
             path = p.findPath(start, target);
@@ -249,7 +245,6 @@ public class LookingMasterBotController implements BotController {
             dir = dir.plus(add);
         } while (path.size() < 2);
         context.move(new XY(path.get(1).gridX - start.gridX, path.get(1).gridY - start.gridY));
-        System.out.println("Try escape");
         return true;
     }
 
@@ -262,7 +257,6 @@ public class LookingMasterBotController implements BotController {
 //            target = g.getNodeAt(estimatedMiddle.x - ul.x, estimatedMiddle.y - ul.y);
             target = g.getNodeAt(me.x - ul.x + dir.x, me.y - ul.y + dir.y);
         } catch (IndexOutOfBoundsException e) {
-            System.out.println("Cant escape2");
             return false;
         }
         path = p.findPath(start, target);
@@ -270,7 +264,6 @@ public class LookingMasterBotController implements BotController {
         if (path.size() < 2)
             return false;
         context.move(new XY(path.get(1).gridX - start.gridX, path.get(1).gridY - start.gridY));
-        System.out.println("Try escape");
         return true;
     }
 

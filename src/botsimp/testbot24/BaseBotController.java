@@ -14,9 +14,10 @@ import java.util.Comparator;
 import java.util.List;
 
 import static botsimp.testbot24.Util24.directSteps;
-import static botsimp.testbot24.Util24.isBetween;
 
 public abstract class BaseBotController implements BotController {
+    protected BotControllerFactoryImpl factory;
+
     protected final Util24.DefaultDict<EntityType, List<XY>> allUnits = new Util24.DefaultDict<>(ArrayList.class);
 
     protected ControllerContext context;
@@ -26,7 +27,7 @@ public abstract class BaseBotController implements BotController {
     protected XY ul = null;
     protected XY lr = null;
 
-    protected XY assumedSize = new XY(0, 0);
+    protected static XY assumedSize = new XY(0, 0);
 
     protected Grid g = null;
     protected Node start = null;
@@ -35,17 +36,23 @@ public abstract class BaseBotController implements BotController {
     protected boolean avoidConforontation = true;
     protected XY currentTarget;
 
+    public BaseBotController(BotControllerFactoryImpl botControllerFactory) {
+        factory = botControllerFactory;
+    }
+
     @Override
-    public void nextStep(ControllerContext context){
+    public void nextStep(ControllerContext context) {
+
+//            long startTime = System.currentTimeMillis();
 
         this.context = context;
-//            long startTime = System.currentTimeMillis();
 
         g = null;
         start = null;
         p = null;
 
         analizeSurroundings();
+        context.getRemainingSteps();
 
         _nextStep();
 
@@ -93,7 +100,7 @@ public abstract class BaseBotController implements BotController {
         for (XY loc : allUnits.get(EntityType.BAD_BEAST)) {
             loc = loc.minus(ul);
 
-            if (avoidConforontation){
+            if (avoidConforontation) {
                 for (int x = loc.x - 1; x <= loc.x + 1; x++) {
                     if (x < 0 || x >= board.length) {
                         continue; // Skip if out of bounds
@@ -124,7 +131,7 @@ public abstract class BaseBotController implements BotController {
                     loc = loc.minus(ul);
                     board[loc.x][loc.y] = -1;
                 }
-            }else{
+            } else {
                 if (context.isMine(loc)) {
                     loc = loc.minus(ul);
                     board[loc.x][loc.y] = -1;
@@ -159,7 +166,7 @@ public abstract class BaseBotController implements BotController {
 
     protected void detect(int x, int y) {
         XY loc = new XY(x, y);
-        if (!isBetween(loc, ul, lr)) {
+        if (!inSight(loc)) {
             return;
         }
         EntityType type = context.getEntityAt(loc);
@@ -176,7 +183,7 @@ public abstract class BaseBotController implements BotController {
             return -1;
         }
         XY nextStep = getDirectPath(plant);
-        if (nextStep != null) {
+        if (nextStep != null && direct > 0) {
             currentTarget = nextStep;
             return direct;
         }
@@ -185,7 +192,7 @@ public abstract class BaseBotController implements BotController {
         Node targetNode = g.getNodeAt(plant.minus(ul));
         ArrayList<Node> path = p.findPath(start, targetNode);
 
-        if (path.size() >= 2) {
+        if (path.size() > 1) {
             Node next = path.get(1);
             if (targetNode.getMoveCount() < maxMoves) {
                 currentTarget = new XY(next.gridX - start.gridX, next.gridY - start.gridY).plus(me);
@@ -265,22 +272,26 @@ public abstract class BaseBotController implements BotController {
         return new XY((int) (assumedSize.x / 2f), (int) (assumedSize.y / 2f));
     }
 
+    protected XY getCorner(int x, int y) {
+        return new XY(assumedSize.x * x, assumedSize.y * y);
+    }
+
     protected void bestGoodTarget() {
         int minMoves = Integer.MAX_VALUE;
         for (XY plant : allUnits.get(EntityType.GOOD_PLANT)) {
-            int length =  findPath(minMoves, plant);
-            if (length >= 0){ // negative int for errors or usless checks
+            int length = findPath(minMoves, plant);
+            if (length >= 0) { // negative int for errors or usless checks
                 minMoves = length;
-            }else {
+            } else {
                 break;
             }
         }
 
         for (XY beast : allUnits.get(EntityType.GOOD_BEAST)) {
-            int length =  findPath(minMoves, beast);
-            if (length >= 0){ // negative int for errors or usless checks
+            int length = findPath(minMoves, beast);
+            if (length >= 0) { // negative int for errors or usless checks
                 minMoves = length;
-            }else {
+            } else {
                 break;
             }
         }
@@ -297,9 +308,21 @@ public abstract class BaseBotController implements BotController {
             if (loc == null) {
                 return Double.POSITIVE_INFINITY;
             }
-            return loc.distanceFrom(me);
+            double dist = loc.distanceFrom(me);
+            if (dist == 0) {
+                return Double.POSITIVE_INFINITY;
+            }
+            return dist;
         }));
 
         return places.get(0);
+    }
+
+    public boolean inSight(int x, int y) {
+        return x >= ul.x && x <= lr.x && y >= ul.y && y <= lr.y;
+    }
+
+    public boolean inSight(XY xy) {
+        return inSight(xy.x, xy.y);
     }
 }

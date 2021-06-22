@@ -144,7 +144,6 @@ public class LookingMiniBotController implements BotController {
                     }
                 }
                 if (bestRadius != 0 && maxEnergy > context.getEnergy() + 100) {
-                    System.out.println("MaxEnergy: " + maxEnergy + " at " + bestRadius);
                     context.implode(bestRadius);
                     return;
                 } else {
@@ -187,7 +186,6 @@ public class LookingMiniBotController implements BotController {
                 EntityType type = context.getEntityAt(loc);
                 if (type == EntityType.NONE) {
                     context.move(new XY(x, y));
-                    System.out.println("Save move to " + new XY(x, y));
                     return;
                 }
             }

@@ -6,11 +6,6 @@ import java.util.HashMap;
 
 public class Util24 {
 
-    public static boolean isBetween(XY loc, XY ul, XY lr) {
-        return loc.x >= ul.x && loc.x <= lr.x &&
-                loc.y >= ul.y && loc.y <= lr.y;
-    }
-
     public static int directSteps(XY loc1, XY loc2) {
         XY vector = loc2.minus(loc1);
         int deltaX = Math.abs(vector.x);
@@ -20,11 +15,11 @@ public class Util24 {
     }
 
     public static XY checkLowestRightest(XY lowestRightest, XY lr) {
-        int x1 = Math.max(lowestRightest.x, lr.x);
-        int y1 = Math.max(lowestRightest.y, lr.y);
+        int x = Math.max(lowestRightest.x, lr.x);
+        int y = Math.max(lowestRightest.y, lr.y);
 
-        if (x1 != lowestRightest.x || y1 != lowestRightest.y) {
-            lowestRightest = new XY(x1, y1);
+        if (x != lowestRightest.x || y != lowestRightest.y) {
+            lowestRightest = new XY(x, y);
             System.out.println("New estimated border: " + lowestRightest);
         }
         return lowestRightest;

@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns2:leaderboard xmlns:ns2="leaderboard">
     <entry>
-        <date>2021-06-20</date>
+        <date>2021-06-22</date>
         <score>
             <id>1</id>
-            <name>testbot24</name>
-            <points>14738</points>
+            <name>testbot69</name>
+            <points>147162</points>
             <ranking>1</ranking>
         </score>
     </entry>
     <entry>
-        <date>2021-06-13</date>
+        <date>2021-06-22</date>
         <score>
             <id>2</id>
             <name>pizzaBot</name>
-            <points>6906</points>
+            <points>119490</points>
             <ranking>2</ranking>
         </score>
     </entry>
     <entry>
-        <date>2021-06-20</date>
+        <date>2021-06-22</date>
         <score>
-            <id>2</id>
-            <name>moneyBot</name>
-            <points>6090</points>
+            <id>0</id>
+            <name>testbot24</name>
+            <points>45425</points>
             <ranking>3</ranking>
         </score>
     </entry>
@@ -32,8 +32,35 @@
         <score>
             <id>1</id>
             <name>testbot24</name>
-            <points>5884</points>
+            <points>14738</points>
             <ranking>4</ranking>
+        </score>
+    </entry>
+    <entry>
+        <date>2021-06-13</date>
+        <score>
+            <id>2</id>
+            <name>pizzaBot</name>
+            <points>6906</points>
+            <ranking>5</ranking>
+        </score>
+    </entry>
+    <entry>
+        <date>2021-06-20</date>
+        <score>
+            <id>2</id>
+            <name>moneyBot</name>
+            <points>6090</points>
+            <ranking>6</ranking>
+        </score>
+    </entry>
+    <entry>
+        <date>2021-06-20</date>
+        <score>
+            <id>1</id>
+            <name>testbot24</name>
+            <points>5884</points>
+            <ranking>7</ranking>
         </score>
     </entry>
     <entry>
@@ -42,33 +69,6 @@
             <id>3</id>
             <name>pizzaBot</name>
             <points>4910</points>
-            <ranking>5</ranking>
-        </score>
-    </entry>
-    <entry>
-        <date>2021-06-20</date>
-        <score>
-            <id>2</id>
-            <name>pizzaBot</name>
-            <points>4101</points>
-            <ranking>6</ranking>
-        </score>
-    </entry>
-    <entry>
-        <date>2021-06-13</date>
-        <score>
-            <id>1</id>
-            <name>moneyBot</name>
-            <points>3929</points>
-            <ranking>7</ranking>
-        </score>
-    </entry>
-    <entry>
-        <date>2021-06-20</date>
-        <score>
-            <id>1</id>
-            <name>moneyBot</name>
-            <points>2887</points>
             <ranking>8</ranking>
         </score>
     </entry>
@@ -77,16 +77,16 @@
         <score>
             <id>2</id>
             <name>pizzaBot</name>
-            <points>2489</points>
+            <points>4101</points>
             <ranking>9</ranking>
         </score>
     </entry>
     <entry>
-        <date>2021-06-21</date>
+        <date>2021-06-13</date>
         <score>
-            <id>2</id>
-            <name>pizzaBot</name>
-            <points>2214</points>
+            <id>1</id>
+            <name>moneyBot</name>
+            <points>3929</points>
             <ranking>10</ranking>
         </score>
     </entry>
