@@ -171,8 +171,10 @@ public class LookingMiniBotController implements BotController {
 
             }
 //                context.doNothing();
-        } catch (OutOfViewException e) {
+        } catch (OutOfViewException|NullPointerException e) {
             e.printStackTrace();
+
+            context.doNothing();
         }
     }
 

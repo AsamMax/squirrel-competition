@@ -8,7 +8,6 @@ import de.hsa.games.fatsquirrel.utilities.XY;
 
 public class LookingMiniBotController extends BaseBotController {
 
-    public static final boolean CAN_ESCAPE = false;
     private boolean goHome = false;
 
     private final int id;
@@ -29,18 +28,19 @@ public class LookingMiniBotController extends BaseBotController {
                 return;
             }
 
-            if (goHome || context.getEnergy() > 1000){
+            if (goHome || context.getEnergy() > 1000) {
                 goHome = true;
 
                 XY dir = findParent();
-                if (dir != null){
-                    context.move(dir);
+                if (dir != null) {
+                    context.move(dir.minus(me));
                 }
             }
 
             XY move = BestMove();
-            if (move != null){
-                context.move(move.minus(me));
+            if (move != null) {
+                XY dir = move.minus(me);
+                context.move(dir);
                 return;
             }
 
@@ -81,26 +81,26 @@ public class LookingMiniBotController extends BaseBotController {
     private XY moveSave() {
 
         XY dir = findParent();
-        if (dir != null){
-            return dir;
+        if (dir != null) {
+            return dir.minus(me);
         }
         do {
             dir = XY.randomDirection();
-        } while (context.getEntityAt(me.plus(dir)) !=  NONE);
+        } while (context.getEntityAt(me.plus(dir)) != NONE);
 
         return dir;
     }
 
-    private XY findParent(){
-        XY ms =  nearest( MASTER_SQUIRREL);
-        if (ms != null){
+    private XY findParent() {
+        XY ms = nearest(MASTER_SQUIRREL);
+        if (ms != null) {
             int moves = findPath(Integer.MAX_VALUE, ms);
-            if (moves > 0){
+            if (moves > 0) {
                 return ms;
             }
         }
         ms = me.plus(context.directionOfMaster());
-        if (context.getEntityAt(ms) !=  WALL){
+        if (context.getEntityAt(ms) != WALL) {
             return ms;
         }
         return null;
@@ -117,7 +117,7 @@ public class LookingMiniBotController extends BaseBotController {
             }
         }
         int energy = context.getEnergy();
-        if (maxEnergy < Math.min(energy + 100, energy * 1.2)){
+        if (maxEnergy < Math.min(energy + 100, energy * 1.2)) {
             return -1;
         }
         return bestRadius;

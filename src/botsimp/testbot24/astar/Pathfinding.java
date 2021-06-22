@@ -18,7 +18,7 @@ public class Pathfinding {
     }
 
     public ArrayList<Node> findPath(Node start, Node target) {
-        Heap<Node> open = new Heap<>(Node.class, grid.maxSize);
+        Heap<Node> open = new Heap<>(Node.class, grid.getMaxSize());
         ArrayList<Node> closed = new ArrayList<>();
 
         open.add(start);
@@ -77,43 +77,6 @@ public class Pathfinding {
         return 14 * dstX + 10 * (dstY - dstX);
     }
 
-    public void printPath(ArrayList<Node> path, Grid g) {
-        if (path == null)
-            System.out.println("There is no path");
-
-        StringBuilder sb = new StringBuilder();
-//        sb.append("\u035F".repeat(g.gridSizeY + 3));
-        sb.append("\n");
-        for (Node[] nodes : g.grid) {
-            sb.append("|");
-            for (Node node : nodes) {
-                if (path != null) {
-                    if (path.get(0) == node || path.get(path.size() - 1) == node)
-                        sb.append("X");
-                    else if (path.contains(node))
-                        //Path
-                        sb.append("\u25CA");
-                    else if (!node.walkable)
-                        //Wall
-                        sb.append("\u2588");
-                    else
-                        sb.append(" ");
-                } else {
-                    if (!node.walkable)
-                        //Wall
-                        sb.append("\u2588");
-                    else
-                        sb.append(" ");
-                }
-            }
-            sb.append("|").append("\n");
-        }
-
-//        sb.append("\u035E".repeat(g.gridSizeY + 3));
-
-        System.out.println(sb.toString());
-    }
-
     public static int distanceTo1(Node start, Node end) {
         return distanceTo1(start.gridX, start.gridY, end.gridX, end.gridY);
     }
@@ -143,5 +106,41 @@ public class Pathfinding {
                 distance += GERADE;
             }
         }
+    }
+    public void printPath(ArrayList<Node> path, Grid g) {
+        if (path == null)
+            System.out.println("There is no path");
+
+        StringBuilder sb = new StringBuilder();
+//        sb.append("\u035F".repeat(g.gridSizeY + 3));
+        sb.append("\n");
+        for (ArrayList<Node> nodes : g.grid) {
+            sb.append("|");
+            for (Node node : nodes) {
+                if (path != null) {
+                    if (path.get(0) == node || path.get(path.size() - 1) == node)
+                        sb.append("X");
+                    else if (path.contains(node))
+                        //Path
+                        sb.append("\u25CA");
+                    else if (!node.walkable)
+                        //Wall
+                        sb.append("\u2588");
+                    else
+                        sb.append(" ");
+                } else {
+                    if (!node.walkable)
+                        //Wall
+                        sb.append("\u2588");
+                    else
+                        sb.append(" ");
+                }
+            }
+            sb.append("|").append("\n");
+        }
+
+//        sb.append("\u035E".repeat(g.gridSizeY + 3));
+
+        System.out.println(sb.toString());
     }
 }

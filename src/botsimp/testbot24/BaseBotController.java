@@ -6,6 +6,7 @@ import botsimp.testbot24.astar.Pathfinding;
 import de.hsa.games.fatsquirrel.core.bot.BotController;
 import de.hsa.games.fatsquirrel.core.bot.ControllerContext;
 import de.hsa.games.fatsquirrel.core.entities.EntityType;
+import de.hsa.games.fatsquirrel.core.entities.MasterSquirrelBot;
 import de.hsa.games.fatsquirrel.utilities.XY;
 
 import java.util.ArrayList;
@@ -13,12 +14,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-import static botsimp.testbot24.Util24.directSteps;
-
 public abstract class BaseBotController implements BotController {
     protected BotControllerFactoryImpl factory;
 
-    protected final Util24.DefaultDict<EntityType, List<XY>> allUnits = new Util24.DefaultDict<>(ArrayList.class);
+    protected final DefaultDict<EntityType, List<XY>> allUnits = new DefaultDict<>(ArrayList.class);
 
     protected ControllerContext context;
 
@@ -38,6 +37,26 @@ public abstract class BaseBotController implements BotController {
 
     public BaseBotController(BotControllerFactoryImpl botControllerFactory) {
         factory = botControllerFactory;
+        g = new Grid();
+    }
+
+    public static int directSteps(XY loc1, XY loc2) {
+        XY vector = loc2.minus(loc1);
+        int deltaX = Math.abs(vector.x);
+        int deltaY = Math.abs(vector.y);
+
+        return Math.max(deltaX, deltaY);
+    }
+
+    public static XY checkLowestRightest(XY lowestRightest, XY lr) {
+        int x1 = Math.max(lowestRightest.x, lr.x);
+        int y1 = Math.max(lowestRightest.y, lr.y);
+
+        if (x1 != lowestRightest.x || y1 != lowestRightest.y) {
+            lowestRightest = new XY(x1, y1);
+            System.out.println("New estimated border: " + lowestRightest);
+        }
+        return lowestRightest;
     }
 
     @Override
@@ -47,7 +66,6 @@ public abstract class BaseBotController implements BotController {
 
         this.context = context;
 
-        g = null;
         start = null;
         p = null;
 
@@ -63,16 +81,16 @@ public abstract class BaseBotController implements BotController {
     protected abstract void _nextStep();
 
     protected void ensureGrid() {
-        if (g == null || start == null || p == null) {
-            g = new Grid(generateBoard());
-            start = g.getNodeAt(me.minus(context.getViewUpperLeft()));
+        if (start == null || p == null) {
+            g.updateGrid(generateBoard(), ul, lr);
+            start = g.getNodeAt(me);
             p = new Pathfinding(g);
         }
 
     }
 
-    protected XY nearestEnemyMini() {
-        List<XY> l = allUnits.get(EntityType.MINI_SQUIRREL);
+    protected XY nearestEnemySquirrel(EntityType type) {
+        List<XY> l = allUnits.get(type);
         for (XY loc : l) {
             if (!context.isMine(loc)) {
                 return loc;
@@ -93,6 +111,18 @@ public abstract class BaseBotController implements BotController {
 
     protected int[][] generateBoard() {
         int[][] board = new int[lr.x - ul.x + 2][lr.y - ul.y + 2];
+        for (int[] row : board) {
+            Arrays.fill(row, 5);
+        }
+
+        for (XY loc : allUnits.get(EntityType.GOOD_BEAST)) {
+            loc = loc.minus(ul);
+            board[loc.x][loc.y] = 3;
+        }
+        for (XY loc : allUnits.get(EntityType.GOOD_PLANT)) {
+            loc = loc.minus(ul);
+            board[loc.x][loc.y] = 1;
+        }
         for (XY loc : allUnits.get(EntityType.BAD_PLANT)) {
             loc = loc.minus(ul);
             board[loc.x][loc.y] = 100;
@@ -118,7 +148,7 @@ public abstract class BaseBotController implements BotController {
         }
         for (XY loc : allUnits.get(EntityType.WALL)) {
             loc = loc.minus(ul);
-            board[loc.x][loc.y] = -1;
+            board[loc.x][loc.y] = -2;
         }
         for (XY loc : allUnits.get(EntityType.MASTER_SQUIRREL)) {
             loc = loc.minus(ul);
@@ -148,7 +178,7 @@ public abstract class BaseBotController implements BotController {
         lr = context.getViewLowerRight();
 
         allUnits.clear();
-        assumedSize = Util24.checkLowestRightest(assumedSize, lr);
+        assumedSize = checkLowestRightest(assumedSize, lr);
 
         int maxDistance = (lr.x - ul.x) / 2;
 
@@ -189,13 +219,15 @@ public abstract class BaseBotController implements BotController {
         }
 
         ensureGrid();
-        Node targetNode = g.getNodeAt(plant.minus(ul));
+        Node targetNode = g.getNodeAt(plant);
         ArrayList<Node> path = p.findPath(start, targetNode);
-
+        p.printPath(path, g);
+        System.out.println(path.size());
+        System.out.println(targetNode.getMoveCount());
         if (path.size() > 1) {
-            Node next = path.get(1);
             if (targetNode.getMoveCount() < maxMoves) {
-                currentTarget = new XY(next.gridX - start.gridX, next.gridY - start.gridY).plus(me);
+                Node next = path.get(1);
+                currentTarget = new XY(next.gridX, next.gridY).plus(me);
                 maxMoves = targetNode.getMoveCount();
             }
         }
@@ -280,7 +312,7 @@ public abstract class BaseBotController implements BotController {
         int minMoves = Integer.MAX_VALUE;
         for (XY plant : allUnits.get(EntityType.GOOD_PLANT)) {
             int length = findPath(minMoves, plant);
-            if (length >= 0) { // negative int for errors or usless checks
+            if (length >= 0) { // negative int for errors or useless checks
                 minMoves = length;
             } else {
                 break;
@@ -289,7 +321,7 @@ public abstract class BaseBotController implements BotController {
 
         for (XY beast : allUnits.get(EntityType.GOOD_BEAST)) {
             int length = findPath(minMoves, beast);
-            if (length >= 0) { // negative int for errors or usless checks
+            if (length >= 0) { // negative int for errors or useless checks
                 minMoves = length;
             } else {
                 break;
@@ -300,8 +332,8 @@ public abstract class BaseBotController implements BotController {
     protected XY closestEnemy() {
         List<XY> places = Arrays.asList(
                 nearest(EntityType.BAD_BEAST),
-                nearest(EntityType.MASTER_SQUIRREL),
-                nearestEnemyMini()
+                nearestEnemySquirrel(EntityType.MASTER_SQUIRREL),
+                nearestEnemySquirrel(EntityType.MINI_SQUIRREL)
         );
 
         places.sort(Comparator.comparingDouble((XY loc) -> {

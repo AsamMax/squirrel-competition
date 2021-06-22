@@ -2,12 +2,15 @@ package botsimp.testbot24;
 
 import botsimp.testbot24.astar.Node;
 import de.hsa.games.fatsquirrel.core.actions.OutOfViewException;
-import static de.hsa.games.fatsquirrel.core.entities.EntityType.*;
+import de.hsa.games.fatsquirrel.core.entities.MasterSquirrelBot;
 import de.hsa.games.fatsquirrel.core.entities.MiniSquirrelBot;
 import de.hsa.games.fatsquirrel.utilities.XY;
 
 import java.util.ArrayList;
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static de.hsa.games.fatsquirrel.core.entities.EntityType.*;
 
 public class LookingMasterBotController extends BaseBotController {
     //    private boolean previouslyShotAtMaster = false; // vllt erst dann wieder auf true wenn kein master in einem bestimmten bereich ist
@@ -16,8 +19,8 @@ public class LookingMasterBotController extends BaseBotController {
 
     public static byte nextDefaultSpot = 0;
 
-    public LookingMasterBotController(BotControllerFactoryImpl botControllerFactory) {
-        super(botControllerFactory);
+    public LookingMasterBotController(BotControllerFactoryImpl factory) {
+        super(factory);
     }
 
 
@@ -27,7 +30,7 @@ public class LookingMasterBotController extends BaseBotController {
 
         try {
 
-            XY near = nearestEnemyMini();
+            XY near = nearestEnemySquirrel(MINI_SQUIRREL);
             if (near != null && near.distanceFrom(me) < 5) {
                 if (spawnMini()) {
                     return;
@@ -48,7 +51,8 @@ public class LookingMasterBotController extends BaseBotController {
                 }
             }
 
-            this.context.move(bestMove().minus(me));
+            XY move = bestMove();
+            this.context.move(move.minus(me));
             return;
 
 
@@ -65,38 +69,44 @@ public class LookingMasterBotController extends BaseBotController {
         bestGoodTarget(); // This sets current Target
 
         if (currentTarget == null) {
-            currentTarget = me.plus(moveSave());
+            int moves = moveSave();
+            if (moves > 0 && moves < 9999) {
+                return currentTarget;
+            } else {
+                return me.plus(XY.randomDirection());
+            }
         }
         return currentTarget;
     }
 
 
-    private XY moveSave() {
+    private int moveSave() {
         XY target;
+        int i = 0;
         do {
             target = defaultSpot();
-            if (inSight(target)){
+            if (inSight(target)) { //TODO: vllt kleiner
                 nextDefaultSpot++;
-                nextDefaultSpot %= 5;
+                nextDefaultSpot %= 8;
                 target = null;
             }
-        }while (target == null);
-        return target.minus(me).toDirection();
+        } while (target == null && i++ < 10);
+        target = ensureInSight(target);
+        return findPath(10000, target);
     }
 
     private XY defaultSpot() {
-        switch (nextDefaultSpot){
+        switch (nextDefaultSpot) {
             default:
-            case 0:// center
                 return getCenter();
             case 1:
-                return getCorner(0,0);
-            case 2:
-                return getCorner(1,0);
+                return getCorner(0, 0);
             case 3:
-                return getCorner(1,1);
-            case 4:
-                return getCorner(0,1);
+                return getCorner(1, 0);
+            case 5:
+                return getCorner(1, 1);
+            case 7:
+                return getCorner(0, 1);
         }
     }
 
@@ -105,7 +115,9 @@ public class LookingMasterBotController extends BaseBotController {
             for (int i = 0; i < 10; i++) {
                 try {
                     // XY dir = XY.randomDirection();
-                    XY dir = closestEnemyDir();
+                    XY dir = closestMiniTargetDir();
+                    if (dir == null)
+                        return false;
                     XY loc = new XY(me.x + dir.x, me.y + dir.y);
                     if (context.getEntityAt(loc) == NONE) {
                         context.spawnMiniBot(dir, 100);
@@ -119,13 +131,14 @@ public class LookingMasterBotController extends BaseBotController {
         return false;
     }
 
-    private XY closestEnemyDir() {
+    private XY closestMiniTargetDir() {
         XY closestLoc = closestEnemy();
 
         if (closestLoc != null) {
             return closestLoc.minus(me).toDirection();
         } else {
-            return XY.randomDirection();
+            bestGoodTarget();
+            return currentTarget.minus(me).toDirection();
         }
     }
 
@@ -148,7 +161,8 @@ public class LookingMasterBotController extends BaseBotController {
         if (path.size() < 2) {
             return false;
         }
-        context.move(new XY(path.get(1).gridX - start.gridX, path.get(1).gridY - start.gridY));
+        XY dir = new XY(path.get(1).gridX - start.gridX, path.get(1).gridY - start.gridY);
+        context.move(dir);
         return true;
     }
 
@@ -157,13 +171,25 @@ public class LookingMasterBotController extends BaseBotController {
         list.addAll(allUnits.get(GOOD_BEAST));
         list.addAll(allUnits.get(GOOD_PLANT));
         list.addAll(allUnits.get(BAD_BEAST));
-        list.addAll(allUnits.get(BAD_PLANT));
+//        list.addAll(allUnits.get(BAD_PLANT));
         list.addAll(allUnits.get(MASTER_SQUIRREL));
         list.addAll(allUnits.get(MINI_SQUIRREL));
 
-        Stream<XY> filtered = list.stream().filter(loc -> {
-            return !context.isMine(loc) && Util24.directSteps(me, loc) <= MiniSquirrelBot.MAXIMUM_SIGHT.x;
-        });
-        return (int) filtered.count();
+        List<XY> filtered = list.stream().filter(loc -> {
+            return !context.isMine(loc) && BaseBotController.directSteps(me, loc) < MiniSquirrelBot.MAXIMUM_SIGHT.x - 3;
+        }).collect(Collectors.toList());
+        return filtered.size();
+    }
+
+
+    public XY ensureInSight(XY xy) {
+        if (inSight(xy)) {
+            return xy;
+        }
+        XY vector = xy.minus(me);
+        int x = Integer.signum(xy.x) * Math.min(Math.abs(vector.x), MasterSquirrelBot.MAXIMUM_SIGHT.x - 1);
+        int y = Integer.signum(xy.y) * Math.min(Math.abs(vector.y), MasterSquirrelBot.MAXIMUM_SIGHT.y - 1);
+
+        return me.plus(new XY(x, y));
     }
 }
