@@ -35,6 +35,8 @@ public abstract class BaseBotController implements BotController {
     protected boolean avoidConforontation = true;
     protected XY currentTarget;
 
+    public static  final boolean DEBUG = true;
+
     public BaseBotController(BotControllerFactoryImpl botControllerFactory) {
         factory = botControllerFactory;
         g = new Grid();
@@ -54,7 +56,10 @@ public abstract class BaseBotController implements BotController {
 
         if (x1 != lowestRightest.x || y1 != lowestRightest.y) {
             lowestRightest = new XY(x1, y1);
-            System.out.println("New estimated border: " + lowestRightest);
+            if (DEBUG){
+                System.out.println("New estimated border: " + lowestRightest);
+            }
+
         }
         return lowestRightest;
     }
@@ -69,10 +74,14 @@ public abstract class BaseBotController implements BotController {
         start = null;
         p = null;
 
-        analizeSurroundings();
-        context.getRemainingSteps();
+        try {
+            analizeSurroundings();
+            context.getRemainingSteps();
 
-        _nextStep();
+            _nextStep();
+        }catch (Exception e){
+            context.doNothing();
+        }
 
 //            System.out.println("Time past: " + (System.currentTimeMillis() - startTime));
 
@@ -82,7 +91,7 @@ public abstract class BaseBotController implements BotController {
 
     protected void ensureGrid() {
         if (start == null || p == null) {
-            g.updateGrid(generateBoard(), ul, lr);
+            g.updateGrid(generateBoard(), ul);
             start = g.getNodeAt(me);
             p = new Pathfinding(g);
         }
@@ -178,7 +187,10 @@ public abstract class BaseBotController implements BotController {
         lr = context.getViewLowerRight();
 
         allUnits.clear();
-        assumedSize = checkLowestRightest(assumedSize, lr);
+        XY lowest = checkLowestRightest(assumedSize, lr);
+        if (!lowest.equals(assumedSize)){
+            assumedSize = lowest;
+        }
 
         int maxDistance = (lr.x - ul.x) / 2;
 
@@ -221,9 +233,11 @@ public abstract class BaseBotController implements BotController {
         ensureGrid();
         Node targetNode = g.getNodeAt(plant);
         ArrayList<Node> path = p.findPath(start, targetNode);
-        p.printPath(path, g);
-        System.out.println(path.size());
-        System.out.println(targetNode.getMoveCount());
+        if (DEBUG && this instanceof LookingMasterBotController){
+            p.printPath(path, g);
+            System.out.println(path.size());
+            System.out.println(targetNode.getMoveCount());
+        }
         if (path.size() > 1) {
             if (targetNode.getMoveCount() < maxMoves) {
                 Node next = path.get(1);

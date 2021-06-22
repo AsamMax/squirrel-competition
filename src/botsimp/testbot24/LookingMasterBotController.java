@@ -59,7 +59,9 @@ public class LookingMasterBotController extends BaseBotController {
         } catch (OutOfViewException e) {
             e.printStackTrace();
         }
-        System.out.println("Do nothing");
+        if (DEBUG){
+            System.out.println("Do nothing");
+        }
         context.doNothing();
     }
 

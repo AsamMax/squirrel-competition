@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public class Grid {
 
     public final boolean DIAGONAL_MOVE = true;
-    public final boolean CHECK_DIAGONAL = true;
+    public final boolean CHECK_DIAGONAL = false;
 
     public double nodeRadius;
     public ArrayList<ArrayList<Node>> grid;
@@ -19,7 +19,7 @@ public class Grid {
         grid = new ArrayList<>();
     }
 
-    public void updateGrid(int[][] board, XY ul, XY lr) {
+    public void updateGrid(int[][] board, XY ul) {
         for (ArrayList<Node> row : grid) {
             for (Node node : row) {
                 if (node == null) {
@@ -33,8 +33,6 @@ public class Grid {
                 }
             }
         }
-        ensureSize(lr.plus(XY.RIGHT_DOWN));
-        ensureSize(lr.plus(XY.RIGHT_DOWN));
 
         for (int xBoard = 0, realX = ul.x; xBoard < board.length; xBoard++, realX++) {
             for (int yBoard = 0, realY = ul.y; yBoard < board[xBoard].length; yBoard++, realY++) {
@@ -46,6 +44,7 @@ public class Grid {
     }
 
     public void ensureSize(XY lowestRight) {
+        lowestRight = lowestRight.plus(XY.RIGHT_DOWN);
         for (int i = grid.size(); i <= lowestRight.x; i++) {
             grid.add(new ArrayList<>());
         }
@@ -53,7 +52,12 @@ public class Grid {
         for (int x = 0; x < grid.size(); x++) {
             ArrayList<Node> row = grid.get(x);
 
-            int highest = x > 0 ? Math.max(lowestRight.y, grid.get(0).size()) : Math.max(lowestRight.y, grid.get(1).size());
+            int highest;
+            if (x != 0) {
+                highest = Math.max(lowestRight.y, grid.get(0).size());
+            } else {
+                highest = Math.max(lowestRight.y, grid.get(1).size());
+            }
 
             for (int y = row.size(); y <= highest; y++) {
                 row.add(new Node(true, x, y, 5));
@@ -107,6 +111,11 @@ public class Grid {
     }
 
     public Node getNodeAt(XY pos) {
-        return grid.get(pos.x).get(pos.y);
+        try {
+            return grid.get(pos.x).get(pos.y);
+        } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
