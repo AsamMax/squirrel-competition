@@ -227,7 +227,7 @@ public abstract class BaseBotController implements BotController {
         if (path.size() > 1) {
             if (targetNode.getMoveCount() < maxMoves) {
                 Node next = path.get(1);
-                currentTarget = new XY(next.gridX, next.gridY).plus(me);
+                currentTarget = new XY(next.gridX, next.gridY);
                 maxMoves = targetNode.getMoveCount();
             }
         }
